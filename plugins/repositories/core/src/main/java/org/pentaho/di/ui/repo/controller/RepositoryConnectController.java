@@ -137,32 +137,27 @@ public class RepositoryConnectController implements IConnectedRepositoryInstance
   }
 
   public String createConnection() {
-    CompletableFuture<String> future = new CompletableFuture<>();
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () -> {
-      DatabaseDialog databaseDialog = new DatabaseDialog( spoonSupplier.get().getShell(), new DatabaseMeta() );
-      databaseDialog.open();
-      DatabaseMeta databaseMeta = databaseDialog.getDatabaseMeta();
-      if ( databaseMeta != null ) {
-        if ( !isDatabaseWithNameExist( databaseMeta, true ) ) {
-          System.out.println("before adding database meta");
-          System.out.println("database meta :"+databaseMeta.getName());
-          System.out.println("database meta :"+databaseMeta.getRepositoryDirectory().getName());
-          try {
-            System.out.println("database meta :"+databaseMeta.getURL());
-          } catch (KettleDatabaseException e) {
-            e.printStackTrace();
-          }
-          addDatabase( databaseMeta );
-          future.complete( databaseMeta.getName() );
-        } else {
-          DatabaseDialog.showDatabaseExistsDialog( spoonSupplier.get().getShell(), databaseMeta );
+    DatabaseDialog databaseDialog = new DatabaseDialog( spoonSupplier.get().getShell(), new DatabaseMeta() );
+    databaseDialog.open();
+    DatabaseMeta databaseMeta = databaseDialog.getDatabaseMeta();
+    if ( databaseMeta != null ) {
+      if ( !isDatabaseWithNameExist( databaseMeta, true ) ) {
+        System.out.println("before adding database meta");
+        System.out.println("database meta :"+databaseMeta.getName());
+        System.out.println("database meta :"+databaseMeta.getRepositoryDirectory().getName());
+        try {
+          System.out.println("database meta :"+databaseMeta.getURL());
+        } catch (KettleDatabaseException e) {
+          e.printStackTrace();
         }
+        addDatabase( databaseMeta );
+      } else {
+        DatabaseDialog.showDatabaseExistsDialog( spoonSupplier.get().getShell(), databaseMeta );
       }
-      future.complete( "None" );
-    } );
+    }
     JSONObject jsonObject = new JSONObject();
     try {
-      jsonObject.put( "name", future.get() );
+      jsonObject.put( "name", databaseMeta.getName() );
       System.out.println("returned json object :"+jsonObject.toJSONString());
       return jsonObject.toJSONString();
     } catch ( Exception e ) {

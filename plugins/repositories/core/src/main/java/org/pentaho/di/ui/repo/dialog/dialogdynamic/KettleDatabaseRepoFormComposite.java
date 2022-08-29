@@ -53,20 +53,11 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
     else{
       JSONArray jsonArray = RepositoryConnectController.getInstance().getDatabases();
       ArrayList<String> listdata = new ArrayList<String>();
-      System.out.println("json string :"+jsonArray.toJSONString());
 
       for (int i=0;i<jsonArray.size();i++){
-
-        System.out.println(jsonArray.get( i ));
-        listdata.add((String) jsonArray.get( i ));
-
+        listdata.add( ( ( JSONObject ) jsonArray.get( i ) ).get( "name" ).toString() );
       }
-      if(listdata !=null && listdata.size()>0){
-        System.out.println("Printing List Array");
-        listdata.forEach(l -> System.out.println(l));
-      }
-      //dbListCombo.setItems( new String[] { "item 1", "item 2", "item 3" });
-      dbListCombo.setItems( listdata.toArray(new String[listdata.size()]) );
+      dbListCombo.setItems( listdata.toArray( new String[listdata.size()] ) );
     }
 
     //dbListCombo.setText( "none" );
@@ -78,31 +69,36 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
 
     Button createDbConBtn = new Button( this,SWT.PUSH );
     // TODO: BaseMessages
-    createDbConBtn.setText( "create connection" );
+    createDbConBtn.setText( "create" );
     createDbConBtn.setLayoutData( new FormDataBuilder().left( dbListCombo, LABEL_CONTROL_MARGIN ).top( lLoc, LABEL_CONTROL_MARGIN ).result() );
     props.setLook( createDbConBtn );
 
+    Button updateDbConBtn = new Button( this,SWT.PUSH );
+    // TODO: BaseMessages
+    updateDbConBtn.setText( "update" );
+    updateDbConBtn.setLayoutData( new FormDataBuilder().left( createDbConBtn, LABEL_CONTROL_MARGIN ).top( lLoc, LABEL_CONTROL_MARGIN ).result() );
+    props.setLook( updateDbConBtn );
+
+    Button deleteDbConBtn = new Button( this,SWT.PUSH );
+    // TODO: BaseMessages
+    deleteDbConBtn.setText( "delete" );
+    deleteDbConBtn.setLayoutData( new FormDataBuilder().left( updateDbConBtn, LABEL_CONTROL_MARGIN ).top( lLoc, LABEL_CONTROL_MARGIN ).result() );
+    props.setLook( deleteDbConBtn );
+
+    deleteDbConBtn.addSelectionListener( new SelectionAdapter() {
+      @Override public void widgetSelected( SelectionEvent selectionEvent ) {
+        //RepositoryConnectController.getInstance().deleteDatabaseConnection(RepositoryConnectController.getInstance().getDatabases().get(0).( "name" ).toString() );
+        //RepositoryConnectController.getInstance().deleteDatabaseConnection(RepositoryConnectController.getInstance().getCurrentRepository().getName());
+      }
+    } );
+
     createDbConBtn.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-        DatabaseDialog databaseDialog = new DatabaseDialog( getShell(), new DatabaseMeta() );
-        databaseDialog.open();
-        DatabaseMeta databaseMeta = databaseDialog.getDatabaseMeta();
-        //DatabaseMeta databaseMeta = new DatabaseMeta();
-        //databaseMeta.initializeVariablesFrom( null );
-        getDatabaseDialog().setDatabaseMeta( databaseMeta );
-        //String name = getDatabaseDialog().open();
+        RepositoryConnectController.getInstance().createConnection();
       }
     } );
 
     return createDbConBtn;
-  }
-
-  private DatabaseDialog getDatabaseDialog() {
-    if ( databaseDialog != null ) {
-      return databaseDialog;
-    }
-    databaseDialog = new DatabaseDialog( getShell() );
-    return databaseDialog;
   }
 
   @Override
