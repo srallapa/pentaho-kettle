@@ -60,8 +60,6 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
       dbListCombo.setItems( listdata.toArray( new String[listdata.size()] ) );
     }
 
-    //dbListCombo.setText( "none" );
-    // dbListCombo.setItems( RepositoryConnectController.getInstance().getDatabases().toJSONString() );
     dbListCombo.setLayoutData( new FormDataBuilder().left( 0, 0 ).top( lLoc, LABEL_CONTROL_MARGIN ).width( MEDIUM_WIDTH ).result() );
     dbListCombo.addModifyListener( lsMod );
     props.setLook( dbListCombo );
@@ -79,6 +77,12 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
     updateDbConBtn.setLayoutData( new FormDataBuilder().left( createDbConBtn, LABEL_CONTROL_MARGIN ).top( lLoc, LABEL_CONTROL_MARGIN ).result() );
     props.setLook( updateDbConBtn );
 
+    updateDbConBtn.addSelectionListener( new SelectionAdapter() {
+      @Override public void widgetSelected( SelectionEvent selectionEvent ) {
+        RepositoryConnectController.getInstance().editDatabaseConnection((dbListCombo.getItem(dbListCombo.getSelectionIndex())));
+      }
+    } );
+
     Button deleteDbConBtn = new Button( this,SWT.PUSH );
     // TODO: BaseMessages
     deleteDbConBtn.setText( "delete" );
@@ -87,8 +91,7 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
 
     deleteDbConBtn.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-        //RepositoryConnectController.getInstance().deleteDatabaseConnection(RepositoryConnectController.getInstance().getDatabases().get(0).( "name" ).toString() );
-        //RepositoryConnectController.getInstance().deleteDatabaseConnection(RepositoryConnectController.getInstance().getCurrentRepository().getName());
+        RepositoryConnectController.getInstance().deleteDatabaseConnection(dbListCombo.getItem(dbListCombo.getSelectionIndex()));
       }
     } );
 
