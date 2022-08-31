@@ -7,18 +7,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 import org.json.simple.JSONArray;
-import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
-import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.repository.BaseRepositoryMeta;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.PropsUI;
-import org.pentaho.di.ui.core.database.dialog.DatabaseDialog;
 import org.pentaho.di.ui.repo.controller.RepositoryConnectController;
 
 import java.util.ArrayList;
@@ -27,8 +22,7 @@ import java.util.Map;
 public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
 
   private Combo dbListCombo;
-  private DatabaseDialog databaseDialog;
-
+  protected Runnable dblistrefresh;
 
   public KettleDatabaseRepoFormComposite( Composite parent, int style )
   {
@@ -45,19 +39,12 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
     props.setLook( lLoc );
 
     dbListCombo = new Combo(this, SWT.READ_ONLY);
-    System.out.println(" list fo dbs"+RepositoryConnectController.getInstance().getDatabases());
     if(RepositoryConnectController.getInstance().getDatabases().isEmpty()){
-      System.out.println("db list is empty");
       dbListCombo.setItems( new String[] { "none"} );
     }
     else{
-      JSONArray jsonArray = RepositoryConnectController.getInstance().getDatabases();
-      ArrayList<String> listdata = new ArrayList<String>();
-
-      for (int i=0;i<jsonArray.size();i++){
-        listdata.add( ( ( JSONObject ) jsonArray.get( i ) ).get( "name" ).toString() );
-      }
-      dbListCombo.setItems( listdata.toArray( new String[listdata.size()] ) );
+      ArrayList<String> listData = convertJSONArrayToList(RepositoryConnectController.getInstance().getDatabases());
+      dbListCombo.setItems( listData.toArray( new String[listData.size()] ) );
     }
 
     dbListCombo.setLayoutData( new FormDataBuilder().left( 0, 0 ).top( lLoc, LABEL_CONTROL_MARGIN ).width( MEDIUM_WIDTH ).result() );
@@ -80,6 +67,7 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
     updateDbConBtn.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
         RepositoryConnectController.getInstance().editDatabaseConnection((dbListCombo.getItem(dbListCombo.getSelectionIndex())));
+        dblistrefresh.run();
       }
     } );
 
@@ -92,16 +80,33 @@ public class KettleDatabaseRepoFormComposite extends BaseRepoFormComposite {
     deleteDbConBtn.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
         RepositoryConnectController.getInstance().deleteDatabaseConnection(dbListCombo.getItem(dbListCombo.getSelectionIndex()));
+        dblistrefresh.run();
       }
     } );
 
     createDbConBtn.addSelectionListener( new SelectionAdapter() {
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
         RepositoryConnectController.getInstance().createConnection();
+        dblistrefresh.run();
       }
     } );
 
+    dblistrefresh = () -> {
+      ArrayList<String> listData = convertJSONArrayToList(RepositoryConnectController.getInstance().getDatabases());
+      dbListCombo.setItems( listData.toArray( new String[listData.size()] ) );
+    };
+
     return createDbConBtn;
+  }
+
+  private ArrayList<String> convertJSONArrayToList(JSONArray jsonArray){
+    ArrayList<String> listData = new ArrayList<String>();
+    if(!jsonArray.isEmpty()) {
+      for (int i = 0; i < jsonArray.size(); i++) {
+        listData.add(((JSONObject) jsonArray.get(i)).get("name").toString());
+      }
+    }
+    return listData;
   }
 
   @Override
